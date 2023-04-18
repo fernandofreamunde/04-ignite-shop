@@ -5,6 +5,7 @@ import Image from "next/image";
 import { GetServerSideProps } from "next";
 import { stripe } from "@/lib/stripe";
 import Stripe from "stripe";
+import Head from "next/head";
 
 interface SuccessProps {
   costumerName: string;
@@ -16,21 +17,27 @@ interface SuccessProps {
 
 export default function Success({ costumerName, product }: SuccessProps) {
   return (
-    <SuccessContainer>
-    <h1>Successfully Bought</h1>
+    <>
+      <Head>
+        <title>Success | Ignite Shop</title>
+      </Head>
 
-    <ImageContainer>
-      <Image src={product.imageUrl} width={120} height={110} alt="" />
-    </ImageContainer>
+      <SuccessContainer>
+        <h1>Successfully Bought</h1>
 
-    <p>
-      Uhuu!! <strong>{costumerName}</strong>, Your <strong>{product.name}</strong> is on its way to your home.
-    </p>
+        <ImageContainer>
+          <Image src={product.imageUrl} width={120} height={110} alt="" />
+        </ImageContainer>
 
-    <Link href="/">
-      Return to catalog
-    </Link>
-  </SuccessContainer>
+        <p>
+          Uhuu!! <strong>{costumerName}</strong>, Your <strong>{product.name}</strong> is on its way to your home.
+        </p>
+
+        <Link href="/">
+          Return to catalog
+        </Link>
+      </SuccessContainer>
+    </>
   )
 }
 
@@ -43,7 +50,7 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
       }
     }
   }
-  
+
   const sessionId = String(query.session_id)
 
   const session = await stripe.checkout.sessions.retrieve(sessionId, {
