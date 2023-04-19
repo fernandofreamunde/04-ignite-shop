@@ -1,11 +1,15 @@
-import { ImageContainer, ProductContainer, ProductDetails } from "@/styles/pages/product"
-import Image from "next/image";
-import { GetStaticPaths, GetStaticProps } from "next";
-import { stripe } from "@/lib/stripe";
-import Stripe from "stripe";
-import axios from "axios";
-import { useState } from "react";
-import Head from "next/head";
+import {
+  ImageContainer,
+  ProductContainer,
+  ProductDetails,
+} from '@/styles/pages/product'
+import Image from 'next/image'
+import { GetStaticPaths, GetStaticProps } from 'next'
+import { stripe } from '@/lib/stripe'
+import Stripe from 'stripe'
+import axios from 'axios'
+import { useState } from 'react'
+import Head from 'next/head'
 
 interface ProductProps {
   product: {
@@ -18,51 +22,52 @@ interface ProductProps {
   }
 }
 
-export default function Product({product}: ProductProps) {
-  const [isCreatingCheckoutSession, setIsCreatingCheckoutSession] = useState(false);
+export default function Product({ product }: ProductProps) {
+  const [isCreatingCheckoutSession, setIsCreatingCheckoutSession] =
+    useState(false)
 
   async function handleBuyButtonPressed() {
     try {
-      setIsCreatingCheckoutSession(true);
+      setIsCreatingCheckoutSession(true)
 
       const response = await axios.post('/api/checkout', {
         priceId: product.defaultPriceId,
       })
 
-      const { checkoutUrl } = response.data;
+      const { checkoutUrl } = response.data
 
-      window.location.href = checkoutUrl;
+      window.location.href = checkoutUrl
     } catch (err) {
-      setIsCreatingCheckoutSession(false);
+      setIsCreatingCheckoutSession(false)
 
       alert('Falha ao redirecionar ao checkout!')
     }
   }
   return (
     <>
-    <Head>
-      <title>{product.name} | Ignite Shop</title>
-    </Head>
+      <Head>
+        <title>{product.name} | Ignite Shop</title>
+      </Head>
 
-    <ProductContainer>
-      <ImageContainer>
-        <Image src={product.imageUrl} width={520} height={480} alt=""/>
-      </ImageContainer>
+      <ProductContainer>
+        <ImageContainer>
+          <Image src={product.imageUrl} width={520} height={480} alt="" />
+        </ImageContainer>
 
-      <ProductDetails>
-        <h1>{product.name}</h1>
-        <span>{product.price}</span>
+        <ProductDetails>
+          <h1>{product.name}</h1>
+          <span>{product.price}</span>
 
-        <p>
-          {product.description}
-        </p>
+          <p>{product.description}</p>
 
-        <button onClick={handleBuyButtonPressed} disabled={isCreatingCheckoutSession}>
-          Buy now
-        </button>
-
-      </ProductDetails>
-    </ProductContainer>
+          <button
+            onClick={handleBuyButtonPressed}
+            disabled={isCreatingCheckoutSession}
+          >
+            Buy now
+          </button>
+        </ProductDetails>
+      </ProductContainer>
     </>
   )
 }
@@ -71,23 +76,25 @@ export const getStaticPaths: GetStaticPaths = async () => {
   return {
     paths: [
       {
-        params: { id: 'prod_NjlijpD8FVeZiz'}
+        params: { id: 'prod_NjlijpD8FVeZiz' },
       },
     ],
-    fallback: 'blocking'
+    fallback: 'blocking',
   }
 }
 
-export const getStaticProps: GetStaticProps<any, { id: string }> = async ({params}) => {
-  const productId = params?.id as string;
+export const getStaticProps: GetStaticProps<any, { id: string }> = async ({
+  params,
+}) => {
+  const productId = params?.id as string
 
   const product = await stripe.products.retrieve(productId, {
-    expand: ['default_price']
+    expand: ['default_price'],
   })
 
   const price = product.default_price as Stripe.Price
 
-  console.log(product);
+  console.log(product)
 
   return {
     props: {
@@ -98,11 +105,11 @@ export const getStaticProps: GetStaticProps<any, { id: string }> = async ({param
         price: new Intl.NumberFormat('pt-PT', {
           style: 'currency',
           currency: 'EUR',
-        }).format(price.unit_amount ? price.unit_amount / 100 : 0.00),
+        }).format(price.unit_amount ? price.unit_amount / 100 : 0.0),
         description: product.description,
-        defaultPriceId: price.id
-      }
+        defaultPriceId: price.id,
+      },
     },
-    revalidate: 60 * 60 * 1 // every 1h
+    revalidate: 60 * 60 * 1, // every 1h
   }
 }

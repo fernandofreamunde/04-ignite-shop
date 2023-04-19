@@ -1,17 +1,16 @@
-import { SuccessContainer, ImageContainer} from "@/styles/pages/success";
-import Link from "next/link";
-import Img1 from '../assets/Shirt/4.png'
-import Image from "next/image";
-import { GetServerSideProps } from "next";
-import { stripe } from "@/lib/stripe";
-import Stripe from "stripe";
-import Head from "next/head";
+import { SuccessContainer, ImageContainer } from '@/styles/pages/success'
+import Link from 'next/link'
+import Image from 'next/image'
+import { GetServerSideProps } from 'next'
+import { stripe } from '@/lib/stripe'
+import Stripe from 'stripe'
+import Head from 'next/head'
 
 interface SuccessProps {
-  costumerName: string;
+  costumerName: string
   product: {
-    name: string;
-    imageUrl: string;
+    name: string
+    imageUrl: string
   }
 }
 
@@ -30,12 +29,11 @@ export default function Success({ costumerName, product }: SuccessProps) {
         </ImageContainer>
 
         <p>
-          Uhuu!! <strong>{costumerName}</strong>, Your <strong>{product.name}</strong> is on its way to your home.
+          Uhuu!! <strong>{costumerName}</strong>, Your{' '}
+          <strong>{product.name}</strong> is on its way to your home.
         </p>
 
-        <Link href="/">
-          Return to catalog
-        </Link>
+        <Link href="/">Return to catalog</Link>
       </SuccessContainer>
     </>
   )
@@ -47,14 +45,14 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
       redirect: {
         destination: '/',
         permanent: false,
-      }
+      },
     }
   }
 
   const sessionId = String(query.session_id)
 
   const session = await stripe.checkout.sessions.retrieve(sessionId, {
-    expand: ['line_items', 'line_items.data.price.product']
+    expand: ['line_items', 'line_items.data.price.product'],
   })
 
   const costumerName = session.customer_details?.name
@@ -65,8 +63,8 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
       costumerName,
       product: {
         name: product.name,
-        imageUrl: product.images[0]
-      }
-    }
+        imageUrl: product.images[0],
+      },
+    },
   }
 }
