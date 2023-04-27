@@ -40,7 +40,7 @@ export default function Product({ product }: ProductProps) {
     } catch (err) {
       setIsCreatingCheckoutSession(false)
 
-      alert('Falha ao redirecionar ao checkout!')
+      alert('failed to redirect to the checkout!')
     }
   }
   return (
