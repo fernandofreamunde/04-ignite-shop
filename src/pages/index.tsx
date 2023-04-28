@@ -8,6 +8,8 @@ import { GetServerSideProps, GetStaticProps } from 'next'
 import Stripe from 'stripe'
 import Link from 'next/link'
 import Head from 'next/head'
+import { useEffect } from 'react'
+import axios from 'axios'
 
 interface HomeProps {
   products: {
@@ -25,6 +27,37 @@ export default function Home({ products }: HomeProps) {
       spacing: 48,
     },
   })
+
+  async function findCarts() {
+    try {
+      const storedJson = localStorage.getItem('@Ignite-Shop:bag-state:0.0.0')
+
+      if (storedJson) {
+        const cart = JSON.parse(storedJson)
+        const response = await axios.post('/api/bag', {
+          action: 'find',
+          bagId: cart.id,
+        })
+
+        const cartJson = JSON.stringify(response.data)
+        localStorage.setItem('@Ignite-Shop:bag-state:0.0.0', cartJson)
+        return
+      }
+
+      throw new Error('local cart not found, trigger create a nerw one.')
+    } catch (err) {
+      const response = await axios.post('/api/bag', {
+        action: 'create',
+      })
+
+      const cartJson = JSON.stringify(response.data)
+      localStorage.setItem('@Ignite-Shop:bag-state:0.0.0', cartJson)
+    }
+  }
+
+  useEffect(() => {
+    findCarts()
+  }, [])
 
   return (
     <>

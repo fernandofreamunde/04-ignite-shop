@@ -20,8 +20,27 @@ import img1 from '@/assets/Shirt/1.png'
 import img2 from '@/assets/Shirt/2.png'
 import img3 from '@/assets/Shirt/3.png'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 
 export function BagModal() {
+  const [bag, setBag] = useState([])
+
+  async function fetchBag() {
+    const storedJson = localStorage.getItem('@Ignite-Shop:bag-state:0.0.0')
+
+    if (storedJson) {
+      const cart = JSON.parse(storedJson)
+
+      console.log('cart')
+      console.log(cart)
+      setBag(cart.items)
+    }
+  }
+
+  useEffect(() => {
+    fetchBag()
+  }, [])
+
   return (
     <Dialog.Portal>
       <Overlay />
@@ -34,43 +53,21 @@ export function BagModal() {
         </CloseButton>
 
         <BagContainer>
-          <BagItem>
-            <ItemImgContainer>
-              <Image src={img2} alt="" width={100} />
-            </ItemImgContainer>
+          {bag.map((bagItem) => {
+            return (
+              <BagItem key={bagItem}>
+                <ItemImgContainer>
+                  <Image src={img2} alt="" width={100} />
+                </ItemImgContainer>
 
-            <ItemWrapper>
-              <ItemName>Camiseta Beyond the Limits</ItemName>
-              <ItemPrice>123 €</ItemPrice>
-              <ItemRemoveButton>Remove</ItemRemoveButton>
-            </ItemWrapper>
-          </BagItem>
-
-          {/*  */}
-          <BagItem>
-            <ItemImgContainer>
-              <Image src={img2} alt="" width={100} />
-            </ItemImgContainer>
-
-            <ItemWrapper>
-              <ItemName>Camiseta Beyond the Limits</ItemName>
-              <ItemPrice>123 €</ItemPrice>
-              <ItemRemoveButton>Remove</ItemRemoveButton>
-            </ItemWrapper>
-          </BagItem>
-
-          <BagItem>
-            <ItemImgContainer>
-              <Image src={img2} alt="" width={100} />
-            </ItemImgContainer>
-
-            <ItemWrapper>
-              <ItemName>Camiseta Beyond the Limits</ItemName>
-              <ItemPrice>123 €</ItemPrice>
-              <ItemRemoveButton>Remove</ItemRemoveButton>
-            </ItemWrapper>
-          </BagItem>
-          {/*  */}
+                <ItemWrapper>
+                  <ItemName>Camiseta Beyond the Limits</ItemName>
+                  <ItemPrice>123 €</ItemPrice>
+                  <ItemRemoveButton>Remove</ItemRemoveButton>
+                </ItemWrapper>
+              </BagItem>
+            )
+          })}
         </BagContainer>
 
         <InfoAndCheckout>

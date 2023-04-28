@@ -5,6 +5,7 @@ import { BagButton, Container, Header } from '@/styles/pages/app'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Handbag } from 'phosphor-react'
 import { BagModal } from '@/components/Bag'
+import Link from 'next/link'
 
 globalStyles()
 
@@ -12,7 +13,9 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <Container>
       <Header>
-        <img src={Logo.src} alt="" />
+        <Link href="/">
+          <img src={Logo.src} alt="" />
+        </Link>
 
         {/*  */}
         <Dialog.Root>

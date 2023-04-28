@@ -27,19 +27,35 @@ export default function Product({ product }: ProductProps) {
     useState(false)
 
   async function handleBuyButtonPressed() {
+    // try {
+    //   setIsCreatingCheckoutSession(true)
+
+    //   const response = await axios.post('/api/checkout', {
+    //     priceId: product.defaultPriceId,
+    //   })
+
+    //   const { checkoutUrl } = response.data
+
+    //   window.location.href = checkoutUrl
+    // } catch (err) {
+    //   setIsCreatingCheckoutSession(false)
+
+    //   alert('failed to redirect to the checkout!')
+    // }
+
     try {
-      setIsCreatingCheckoutSession(true)
+      const storedJson = localStorage.getItem('@Ignite-Shop:bag-state:0.0.0')
 
-      const response = await axios.post('/api/checkout', {
-        priceId: product.defaultPriceId,
-      })
+      if (storedJson) {
+        const cart = JSON.parse(storedJson)
 
-      const { checkoutUrl } = response.data
-
-      window.location.href = checkoutUrl
+        const response = await axios.post('/api/bag', {
+          action: 'add',
+          bagId: cart.id,
+          priceId: product.defaultPriceId,
+        })
+      }
     } catch (err) {
-      setIsCreatingCheckoutSession(false)
-
       alert('failed to redirect to the checkout!')
     }
   }
@@ -64,7 +80,7 @@ export default function Product({ product }: ProductProps) {
             onClick={handleBuyButtonPressed}
             disabled={isCreatingCheckoutSession}
           >
-            Buy now
+            Add to bag
           </button>
         </ProductDetails>
       </ProductContainer>
