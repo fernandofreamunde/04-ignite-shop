@@ -21,11 +21,13 @@ export interface BagItem {
 
 interface BagContextType {
   bag: BagItem[]
+  bagId: number
   addProductToBag: (data: BagItem) => void
   increaseItemQuantity: (product: Product) => void
   decreaseItemQuantity: (product: Product) => void
   removeFromBag: (product: Product) => void
   clearBag: () => void
+  deleteBag: (bagId: number) => void
 }
 
 export const BagContext = createContext({} as BagContextType)
@@ -114,6 +116,19 @@ export function BagContextProvider({ children }: BagContextProviderProps) {
     }
   }
 
+  async function deleteBag(bagId: number) {
+    try {
+      await axios.post('/api/bag', {
+        action: 'delete',
+        bagId,
+      })
+
+      localStorage.removeItem('@Ignite-Shop:bag-state:0.0.0')
+    } catch (err) {
+      console.log('cart not found...')
+    }
+  }
+
   useEffect(() => {
     findBags()
   }, [])
@@ -122,6 +137,8 @@ export function BagContextProvider({ children }: BagContextProviderProps) {
     <BagContext.Provider
       value={{
         bag,
+        bagId,
+        deleteBag,
         addProductToBag,
         decreaseItemQuantity,
         increaseItemQuantity,

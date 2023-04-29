@@ -25,7 +25,7 @@ import { Product } from '@/reducers/bag/reducer'
 export function BagModal() {
   const [isCreatingCheckoutSession, setIsCreatingCheckoutSession] =
     useState(false)
-  const { bag, removeFromBag } = useContext(BagContext)
+  const { bag, bagId, removeFromBag } = useContext(BagContext)
 
   const productTotal = bag.reduce((total, item) => {
     return total + 1 * Number(item.product.price)
@@ -41,6 +41,7 @@ export function BagModal() {
       setIsCreatingCheckoutSession(true)
 
       const response = await axios.post('/api/checkout', {
+        bagId,
         items: bag.map((bagItem) => {
           return {
             price: bagItem.product.priceId,
