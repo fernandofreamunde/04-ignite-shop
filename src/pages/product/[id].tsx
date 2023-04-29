@@ -7,15 +7,16 @@ import Image from 'next/image'
 import { GetStaticPaths, GetStaticProps } from 'next'
 import { stripe } from '@/lib/stripe'
 import Stripe from 'stripe'
-import axios from 'axios'
-import { useState } from 'react'
+import { useContext } from 'react'
 import Head from 'next/head'
+import { BagContext } from '@/contexts/BagContext'
 
 interface ProductProps {
   product: {
     id: string
     name: string
     imageUrl: string
+    rawPrice: number
     price: string
     description: string
     defaultPriceId: string
@@ -23,42 +24,20 @@ interface ProductProps {
 }
 
 export default function Product({ product }: ProductProps) {
-  const [isCreatingCheckoutSession, setIsCreatingCheckoutSession] =
-    useState(false)
+  const { addProductToBag } = useContext(BagContext)
 
   async function handleBuyButtonPressed() {
-    // try {
-    //   setIsCreatingCheckoutSession(true)
-
-    //   const response = await axios.post('/api/checkout', {
-    //     priceId: product.defaultPriceId,
-    //   })
-
-    //   const { checkoutUrl } = response.data
-
-    //   window.location.href = checkoutUrl
-    // } catch (err) {
-    //   setIsCreatingCheckoutSession(false)
-
-    //   alert('failed to redirect to the checkout!')
-    // }
-
-    try {
-      const storedJson = localStorage.getItem('@Ignite-Shop:bag-state:0.0.0')
-
-      if (storedJson) {
-        const cart = JSON.parse(storedJson)
-
-        const response = await axios.post('/api/bag', {
-          action: 'add',
-          bagId: cart.id,
-          priceId: product.defaultPriceId,
-        })
-      }
-    } catch (err) {
-      alert('failed to redirect to the checkout!')
-    }
+    addProductToBag({
+      quantity: 1,
+      product: {
+        priceId: product.defaultPriceId,
+        name: product.name,
+        picture: product.imageUrl,
+        price: product.rawPrice,
+      },
+    })
   }
+
   return (
     <>
       <Head>
@@ -76,12 +55,7 @@ export default function Product({ product }: ProductProps) {
 
           <p>{product.description}</p>
 
-          <button
-            onClick={handleBuyButtonPressed}
-            disabled={isCreatingCheckoutSession}
-          >
-            Add to bag
-          </button>
+          <button onClick={handleBuyButtonPressed}>Add to bag</button>
         </ProductDetails>
       </ProductContainer>
     </>
@@ -110,14 +84,13 @@ export const getStaticProps: GetStaticProps<any, { id: string }> = async ({
 
   const price = product.default_price as Stripe.Price
 
-  console.log(product)
-
   return {
     props: {
       product: {
         id: product.id,
         name: product.name,
         imageUrl: product.images[0],
+        rawPrice: price.unit_amount ? price.unit_amount / 100 : 0.0,
         price: new Intl.NumberFormat('pt-PT', {
           style: 'currency',
           currency: 'EUR',

@@ -16,30 +16,52 @@ import {
 } from '@/styles/components/bag'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'phosphor-react'
-import img1 from '@/assets/Shirt/1.png'
-import img2 from '@/assets/Shirt/2.png'
-import img3 from '@/assets/Shirt/3.png'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import { BagContext } from '@/contexts/BagContext'
+import axios from 'axios'
+import { Product } from '@/reducers/bag/reducer'
 
 export function BagModal() {
-  const [bag, setBag] = useState([])
+  const [isCreatingCheckoutSession, setIsCreatingCheckoutSession] =
+    useState(false)
+  const { bag, removeFromBag } = useContext(BagContext)
 
-  async function fetchBag() {
-    const storedJson = localStorage.getItem('@Ignite-Shop:bag-state:0.0.0')
+  const productTotal = bag.reduce((total, item) => {
+    return total + 1 * Number(item.product.price)
+  }, 0)
 
-    if (storedJson) {
-      const cart = JSON.parse(storedJson)
+  const productTotalFormatted = new Intl.NumberFormat('pt-PT', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(productTotal)
 
-      console.log('cart')
-      console.log(cart)
-      setBag(cart.items)
+  async function handleBuyButtonPressed() {
+    try {
+      setIsCreatingCheckoutSession(true)
+
+      const response = await axios.post('/api/checkout', {
+        items: bag.map((bagItem) => {
+          return {
+            price: bagItem.product.priceId,
+            quantity: 1,
+          }
+        }),
+      })
+
+      const { checkoutUrl } = response.data
+
+      window.location.href = checkoutUrl
+    } catch (err) {
+      setIsCreatingCheckoutSession(false)
+
+      alert('failed to redirect to the checkout!')
     }
   }
 
-  useEffect(() => {
-    fetchBag()
-  }, [])
+  function handleRemoveButtonPressed(product: Product) {
+    removeFromBag(product)
+  }
 
   return (
     <Dialog.Portal>
@@ -55,15 +77,30 @@ export function BagModal() {
         <BagContainer>
           {bag.map((bagItem) => {
             return (
-              <BagItem key={bagItem}>
+              <BagItem key={bagItem.product.priceId}>
                 <ItemImgContainer>
-                  <Image src={img2} alt="" width={100} />
+                  <Image
+                    src={bagItem.product.picture}
+                    alt=""
+                    width={100}
+                    height={100}
+                  />
                 </ItemImgContainer>
 
                 <ItemWrapper>
-                  <ItemName>Camiseta Beyond the Limits</ItemName>
-                  <ItemPrice>123 €</ItemPrice>
-                  <ItemRemoveButton>Remove</ItemRemoveButton>
+                  <ItemName>{bagItem.product.name}</ItemName>
+
+                  <ItemPrice>
+                    {new Intl.NumberFormat('pt-PT', {
+                      style: 'currency',
+                      currency: 'EUR',
+                    }).format(bagItem.product.price)}
+                  </ItemPrice>
+                  <ItemRemoveButton
+                    onClick={() => handleRemoveButtonPressed(bagItem.product)}
+                  >
+                    Remove
+                  </ItemRemoveButton>
                 </ItemWrapper>
               </BagItem>
             )
@@ -73,14 +110,19 @@ export function BagModal() {
         <InfoAndCheckout>
           <InfoRow>
             <span>Quantity</span>
-            <span>3 items</span>
+            <span>{bag.length} items</span>
           </InfoRow>
           <InfoRowBold>
             <span>Total</span>
-            <span>369 €</span>
+            <span>{productTotalFormatted}</span>
           </InfoRowBold>
 
-          <CheckoutButton>Checkout</CheckoutButton>
+          <CheckoutButton
+            onClick={handleBuyButtonPressed}
+            disabled={isCreatingCheckoutSession}
+          >
+            Checkout
+          </CheckoutButton>
         </InfoAndCheckout>
       </Content>
     </Dialog.Portal>
